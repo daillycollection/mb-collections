@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1a2744">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MB Collections">
+<title>MB Collections</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1a2744;
+  --navy2: #243159;
+  --gold: #f5a623;
+  --gold2: #ffc84a;
+  --green: #1db87a;
+  --green2: #0fa366;
+  --red: #e84040;
+  --bg: #f0f2f7;
+  --card: #ffffff;
+  --text: #1a2744;
+  --muted: #7a869a;
+  --border: #e2e6ef;
+  --radius: 16px;
+  --font: 'Baloo 2', 'Noto Sans Devanagari', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--navy);
+  color: #fff;
+  padding: 18px 20px 14px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header-row { display: flex; align-items: center; justify-content: space-between; }
+.header h1 { font-size: 20px; font-weight: 800; letter-spacing: .3px; }
+.header .sub { font-size: 12px; opacity: .65; margin-top: 2px; }
+.back-btn {
+  background: rgba(255,255,255,.12);
+  border: none;
+  color: #fff;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ── TODAY SUMMARY BAR ── */
+.summary-bar {
+  background: linear-gradient(135deg, var(--navy2), var(--navy));
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  gap: 0;
+}
+.sum-item { flex: 1; text-align: center; }
+.sum-item + .sum-item { border-left: 1px solid rgba(255,255,255,.15); }
+.sum-val { font-size: 20px; font-weight: 800; color: var(--gold); }
+.sum-label { font-size: 10px; opacity: .6; margin-top: 2px; letter-spacing: .5px; text-transform: uppercase; }
+
+/* ── SEARCH ── */
+.search-wrap { padding: 14px 16px 4px; }
+.search-box {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px 10px 38px;
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%237a869a' stroke-width='2' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 12px center;
+  transition: border-color .2s;
+}
+.search-box:focus { border-color: var(--gold); }
+
+/* ── BORROWER LIST ── */
+.list-section { padding: 14px 16px; flex: 1; }
+.section-title {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.borrower-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+  position: relative;
+  overflow: hidden;
+}
+.borrower-card:active { transform: scale(.98); }
+.borrower-card.collected { border-color: var(--green); }
+.borrower-card.collected::after {
+  content: '✓ Collected';
+  position: absolute;
+  top: 10px; right: 12px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: .5px;
+}
+.borrower-card.overdue { border-color: var(--red); }
+
+.avatar {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  flex-shrink: 0;
+  color: #fff;
+}
+.av-blue  { background: #2d6be4; }
+.av-purple{ background: #7c4dff; }
+.av-teal  { background: #00897b; }
+.av-orange{ background: #f57c00; }
+.av-pink  { background: #e91e87; }
+.av-red   { background: #c62828; }
+
+.b-info { flex: 1; min-width: 0; }
+.b-name { font-size: 16px; font-weight: 700; }
+.b-detail { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.b-right { text-align: right; flex-shrink: 0; }
+.b-day { font-size: 22px; font-weight: 800; color: var(--navy); line-height: 1; }
+.b-dayof { font-size: 11px; color: var(--muted); }
+
+.progress-ring { margin-top: 4px; }
+.progress-bar {
+  height: 4px; width: 60px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+.progress-fill { height: 100%; border-radius: 4px; background: var(--gold); transition: width .4s; }
+.progress-fill.done { background: var(--green); }
+
+/* ── COLLECT SCREEN ── */
+#screen-collect .header { background: var(--navy); }
+.collect-body { padding: 20px 16px; flex: 1; overflow-y: auto; }
+
+.borrower-hero {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  border: 1.5px solid var(--border);
+}
+.hero-avatar {
+  width: 60px; height: 60px;
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 800; color: #fff;
+}
+.hero-name { font-size: 20px; font-weight: 800; }
+.hero-info { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+.loan-overview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.lo-card {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 14px;
+  border: 1.5px solid var(--border);
+}
+.lo-val { font-size: 18px; font-weight: 800; }
+.lo-val.green { color: var(--green); }
+.lo-val.gold { color: var(--gold); }
+.lo-val.red { color: var(--red); }
+.lo-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.day-selector { margin-bottom: 20px; }
+.day-selector label { font-size: 13px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 8px; letter-spacing: .5px; text-transform: uppercase; }
+.day-input {
+  width: 100%;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  font-family: var(--font);
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--navy);
+  text-align: center;
+  outline: none;
+  transition: border-color .2s;
+}
+.day-input:focus { border-color: var(--gold); }
+
+.amount-row {
+  background: var(--navy);
+  border-radius: var(--radius);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.amt-label { font-size: 13px; color: rgba(255,255,255,.6); letter-spacing: .5px; text-transform: uppercase; }
+.amt-val { font-size: 36px; font-weight: 800; color: var(--gold); }
+.amt-rs { font-size: 20px; margin-right: 4px; }
+
+.note-input {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: var(--font);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  margin-bottom: 20px;
+  resize: none;
+  transition: border-color .2s;
+}
+.note-input:focus { border-color: var(--gold); }
+
+.save-btn {
+  width: 100%;
+  background: var(--green);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 18px;
+  font-family: var(--font);
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: transform .15s, background .2s;
+  letter-spacing: .3px;
+}
+.save-btn:active { transform: scale(.97); background: var(--green2); }
+
+/* ── HISTORY in collect ── */
+.history-section { margin-top: 24px; }
+.history-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+}
+.hist-day {
+  width: 36px; height: 36px;
+  background: var(--bg);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: var(--navy);
+  flex-shrink: 0;
+}
+.hist-info { flex: 1; }
+.hist-date { font-size: 13px; font-weight: 600; }
+.hist-note { font-size: 12px; color: var(--muted); margin-top: 1px; }
+.hist-amt { font-size: 15px; font-weight: 800; color: var(--green); }
+
+/* ── SUCCESS OVERLAY ── */
+.success-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex; align-items: flex-end;
+  z-index: 999;
+  opacity: 0; pointer-events: none;
+  transition: opacity .25s;
+}
+.success-overlay.show { opacity: 1; pointer-events: all; }
+.success-sheet {
+  background: var(--card);
+  border-radius: 24px 24px 0 0;
+  padding: 28px 24px 40px;
+  width: 100%;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1);
+}
+.success-overlay.show .success-sheet { transform: translateY(0); }
+.success-icon { font-size: 56px; text-align: center; margin-bottom: 8px; }
+.success-title { font-size: 24px; font-weight: 800; text-align: center; color: var(--green); }
+.success-sub { font-size: 14px; color: var(--muted); text-align: center; margin: 6px 0 22px; }
+.wa-btn {
+  width: 100%;
+  background: #25d366;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-family: var(--font);
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  transition: transform .15s;
+}
+.wa-btn:active { transform: scale(.97); }
+.skip-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--muted);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  font-family: var(--font);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* ── DASHBOARD / REPORTS ── */
+.tabs {
+  display: flex;
+  background: var(--navy);
+  padding: 0 16px 12px;
+  gap: 8px;
+}
+.tab-btn {
+  flex: 1;
+  background: rgba(255,255,255,.1);
+  border: none;
+  color: rgba(255,255,255,.6);
+  border-radius: 10px;
+  padding: 8px 4px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.tab-btn.active { background: var(--gold); color: var(--navy); }
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: 24px; right: 24px;
+  width: 56px; height: 56px;
+  background: var(--gold);
+  border: none;
+  border-radius: 18px;
+  font-size: 28px;
+  color: var(--navy);
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(245,166,35,.5);
+  transition: transform .15s;
+  z-index: 200;
+}
+.fab:active { transform: scale(.93); }
+
+/* ── ADD BORROWER SCREEN ── */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 700; color: var(--muted); display: block; margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+.form-input {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 13px 14px;
+  font-family: var(--font);
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s;
+}
+.form-input:focus { border-color: var(--gold); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.add-btn {
+  width: 100%;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 17px;
+  font-family: var(--font);
+  font-size: 17px;
+  font-weight: 800;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: transform .15s;
+}
+.add-btn:active { transform: scale(.97); }
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+}
+.empty-state .big { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 15px; line-height: 1.5; }
+
+/* scrollbar */
+::-webkit-scrollbar { width: 0; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 1: HOME / BORROWER LIST
+═══════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="header">
+    <div class="header-row">
+      <div>
+        <h1>💰 MB Collections</h1>
+        <div class="sub" id="today-date">Loading...</div>
+      </div>
+      <button class="back-btn" onclick="showScreen('screen-add')" title="Add borrower">＋</button>
+    </div>
+  </div>
+
+  <div class="summary-bar">
+    <div class="sum-item">
+      <div class="sum-val" id="sum-collected">₹0</div>
+      <div class="sum-label">Today collected</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-val" id="sum-pending">0</div>
+      <div class="sum-label">Pending visits</div>
+    </div>
+    <div class="sum-item">
+      <div class="sum-val" id="sum-total">₹0</div>
+      <div class="sum-label">Total outstanding</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="filterList('all', this)">All</button>
+    <button class="tab-btn" onclick="filterList('pending', this)">Pending</button>
+    <button class="tab-btn" onclick="filterList('collected', this)">Done ✓</button>
+    <button class="tab-btn" onclick="filterList('overdue', this)">Overdue</button>
+  </div>
+
+  <div class="search-wrap">
+    <input class="search-box" type="search" placeholder="Search borrower name..." oninput="searchBorrowers(this.value)" id="search-input">
+  </div>
+
+  <div class="list-section">
+    <div class="section-title" id="list-count">All borrowers</div>
+    <div id="borrower-list"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 2: COLLECT PAYMENT
+═══════════════════════════════════════════════ -->
+<div id="screen-collect" class="screen">
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+      <div style="text-align:center">
+        <h1>Record Collection</h1>
+        <div class="sub" id="collect-borrower-sub">Borrower details</div>
+      </div>
+      <div style="width:36px"></div>
+    </div>
+  </div>
+  <div class="collect-body" id="collect-body"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCREEN 3: ADD BORROWER
+═══════════════════════════════════════════════ -->
+<div id="screen-add" class="screen">
+  <div class="header">
+    <div class="header-row">
+      <button class="back-btn" onclick="showScreen('screen-home')">←</button>
+      <div style="text-align:center">
+        <h1>Add Borrower</h1>
+        <div class="sub">New loan account</div>
+      </div>
+      <div style="width:36px"></div>
+    </div>
+  </div>
+  <div style="padding:20px 16px; overflow-y:auto; flex:1;">
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input class="form-input" id="f-name" type="text" placeholder="e.g. Ramesh Patil">
+    </div>
+    <div class="form-group">
+      <label class="form-label">WhatsApp Number</label>
+      <input class="form-input" id="f-phone" type="tel" placeholder="91XXXXXXXXXX (with country code)">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Loan Amount (₹)</label>
+        <input class="form-input" id="f-loan" type="number" placeholder="9000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Total Days</label>
+        <input class="form-input" id="f-days" type="number" placeholder="100">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Daily Amount (₹)</label>
+        <input class="form-input" id="f-daily" type="number" placeholder="100">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Start Date</label>
+        <input class="form-input" id="f-start" type="date">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Shop / Address</label>
+      <input class="form-input" id="f-shop" type="text" placeholder="e.g. Ramesh General Store, Market Road">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Agent Name (MB)</label>
+      <input class="form-input" id="f-agent" type="text" placeholder="Your name" value="">
+    </div>
+    <button class="add-btn" onclick="addBorrower()">✅ Add Borrower</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SUCCESS OVERLAY
+═══════════════════════════════════════════════ -->
+<div class="success-overlay" id="success-overlay">
+  <div class="success-sheet">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Payment Recorded!</div>
+    <div class="success-sub" id="success-sub">₹100 collected from Ramesh · Day 23/100</div>
+    <button class="wa-btn" id="wa-send-btn" onclick="sendWhatsApp()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      Send WhatsApp Receipt
+    </button>
+    <button class="skip-btn" onclick="closeSuccess()">Skip — I'll send later</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA STORE (localStorage)
+// ═══════════════════════════════════════════════
+const STORE_KEY = 'mb_collections_v2';
+let state = { borrowers: [], collections: [], agentName: 'MB' };
+let currentBorrowerId = null;
+let currentFilter = 'all';
+let pendingWA = null;
+
+function loadState() {
+  try {
+    const s = localStorage.getItem(STORE_KEY);
+    if (s) state = JSON.parse(s);
+  } catch(e) {}
+  // seed demo data if empty
+  if (!state.borrowers || state.borrowers.length === 0) seedDemo();
+}
+
+function saveState() {
+  localStorage.setItem(STORE_KEY, JSON.stringify(state));
+}
+
+function seedDemo() {
+  const today = new Date();
+  const daysAgo = (n) => {
+    const d = new Date(today); d.setDate(d.getDate() - n);
+    return d.toISOString().split('T')[0];
+  };
+  state.borrowers = [
+    { id:'b1', name:'Ramesh Patil', phone:'919876543210', loan:9000, totalDays:100, dailyAmt:100, startDate:daysAgo(22), shop:'Ramesh General Store', color:'av-blue', initials:'RP', agent:'Vijay' },
+    { id:'b2', name:'Suresh Yadav', phone:'919765432109', loan:6000, totalDays:60, dailyAmt:100, startDate:daysAgo(15), shop:'Yadav Kirana', color:'av-purple', initials:'SY', agent:'Vijay' },
+    { id:'b3', name:'Meena Devi', phone:'917654321098', loan:12000, totalDays:120, dailyAmt:100, startDate:daysAgo(40), shop:'Meena Saree Center', color:'av-pink', initials:'MD', agent:'Vijay' },
+    { id:'b4', name:'Prakas Nair', phone:'916543210987', loan:5000, totalDays:50, dailyAmt:100, startDate:daysAgo(10), shop:'Nair Electronics', color:'av-teal', initials:'PN', agent:'Vijay' },
+    { id:'b5', name:'Anil Kumar', phone:'915432109876', loan:15000, totalDays:150, dailyAmt:100, startDate:daysAgo(60), shop:'Kumar Hardware', color:'av-orange', initials:'AK', agent:'Vijay' },
+  ];
+  // seed some collections
+  state.collections = [];
+  // Ramesh: days 1-22 paid, today not yet
+  for(let d=1;d<=22;d++) {
+    const dt = new Date(today); dt.setDate(dt.getDate() - (22-d));
+    state.collections.push({ id:'c'+Math.random(), borrowerId:'b1', day:d, amount:100, date:dt.toISOString().split('T')[0], note:'' });
+  }
+  // Suresh: days 1-15 paid
+  for(let d=1;d<=14;d++) {
+    const dt = new Date(today); dt.setDate(dt.getDate() - (14-d));
+    state.collections.push({ id:'c'+Math.random(), borrowerId:'b2', day:d, amount:100, date:dt.toISOString().split('T')[0], note:'' });
+  }
+  // Meena: days 1-40 paid, mark today collected
+  for(let d=1;d<=40;d++) {
+    const dt = new Date(today); dt.setDate(dt.getDate() - (40-d));
+    state.collections.push({ id:'c'+Math.random(), borrowerId:'b3', day:d, amount:100, date:dt.toISOString().split('T')[0], note:'' });
+  }
+  // Anil: days 1-58 paid (2 missed = overdue)
+  for(let d=1;d<=58;d++) {
+    const dt = new Date(today); dt.setDate(dt.getDate() - (60-d));
+    state.collections.push({ id:'c'+Math.random(), borrowerId:'b5', day:d, amount:100, date:dt.toISOString().split('T')[0], note:'' });
+  }
+  saveState();
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function today() { return new Date().toISOString().split('T')[0]; }
+
+function daysSinceStart(b) {
+  const start = new Date(b.startDate);
+  const now = new Date();
+  return Math.floor((now - start) / 86400000) + 1;
+}
+
+function paidDays(borrowerId) {
+  return state.collections.filter(c => c.borrowerId === borrowerId).length;
+}
+
+function isCollectedToday(borrowerId) {
+  return state.collections.some(c => c.borrowerId === borrowerId && c.date === today());
+}
+
+function getNextDay(borrowerId) {
+  const paid = paidDays(borrowerId);
+  return paid + 1;
+}
+
+function remainingAmount(b) {
+  const paid = paidDays(b.id);
+  return b.loan - (paid * b.dailyAmt);
+}
+
+function isOverdue(b) {
+  const expectedDays = Math.min(daysSinceStart(b), b.totalDays);
+  const actual = paidDays(b.id);
+  return actual < expectedDays - 1;
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+
+function formatCurrency(n) {
+  return '₹' + n.toLocaleString('en-IN');
+}
+
+const COLORS = ['av-blue','av-purple','av-teal','av-orange','av-pink','av-red'];
+function getInitials(name) {
+  return name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+}
+function getColor(name) {
+  let h = 0; for(const c of name) h = (h*31 + c.charCodeAt(0)) & 0xffff;
+  return COLORS[h % COLORS.length];
+}
+
+// ═══════════════════════════════════════════════
+// RENDER HOME
+// ═══════════════════════════════════════════════
+function renderHome() {
+  // date
+  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  // summary
+  const todayCols = state.collections.filter(c => c.date === today());
+  const totalCollected = todayCols.reduce((s,c)=>s+c.amount,0);
+  const pendingCount = state.borrowers.filter(b => !isCollectedToday(b.id) && paidDays(b.id) < b.totalDays).length;
+  const totalOutstanding = state.borrowers.reduce((s,b)=>s+remainingAmount(b),0);
+
+  document.getElementById('sum-collected').textContent = formatCurrency(totalCollected);
+  document.getElementById('sum-pending').textContent = pendingCount;
+  document.getElementById('sum-total').textContent = formatCurrency(totalOutstanding);
+
+  // list
+  let borrowers = [...state.borrowers];
+  const q = document.getElementById('search-input').value.toLowerCase();
+  if (q) borrowers = borrowers.filter(b => b.name.toLowerCase().includes(q) || (b.shop||'').toLowerCase().includes(q));
+
+  if (currentFilter === 'pending') borrowers = borrowers.filter(b => !isCollectedToday(b.id) && paidDays(b.id) < b.totalDays);
+  if (currentFilter === 'collected') borrowers = borrowers.filter(b => isCollectedToday(b.id));
+  if (currentFilter === 'overdue') borrowers = borrowers.filter(b => isOverdue(b));
+
+  document.getElementById('list-count').textContent = `${borrowers.length} borrower${borrowers.length!==1?'s':''}`;
+
+  const el = document.getElementById('borrower-list');
+  if (borrowers.length === 0) {
+    el.innerHTML = `<div class="empty-state"><div class="big">🔍</div><p>${state.borrowers.length===0?'No borrowers yet.<br>Tap + to add your first borrower.':'No borrowers match this filter.'}</p></div>`;
+    return;
+  }
+
+  el.innerHTML = borrowers.map(b => {
+    const pd = paidDays(b.id);
+    const nd = getNextDay(b.id);
+    const collected = isCollectedToday(b.id);
+    const overdue = isOverdue(b);
+    const pct = Math.round((pd / b.totalDays) * 100);
+    const color = b.color || getColor(b.name);
+    const init = b.initials || getInitials(b.name);
+    return `
+    <div class="borrower-card ${collected?'collected':''} ${overdue&&!collected?'overdue':''}" onclick="openCollect('${b.id}')">
+      <div class="avatar ${color}">${init}</div>
+      <div class="b-info">
+        <div class="b-name">${b.name}</div>
+        <div class="b-detail">${b.shop||''}</div>
+        <div class="progress-bar"><div class="progress-fill ${collected?'done':''}" style="width:${pct}%"></div></div>
+        <div class="b-detail" style="margin-top:4px">${formatCurrency(remainingAmount(b))} remaining</div>
+      </div>
+      <div class="b-right">
+        <div class="b-day">${nd > b.totalDays ? '✓' : 'Day ' + nd}</div>
+        <div class="b-dayof">of ${b.totalDays}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterList(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderHome();
+}
+
+function searchBorrowers(q) { renderHome(); }
+
+// ═══════════════════════════════════════════════
+// COLLECT SCREEN
+// ═══════════════════════════════════════════════
+function openCollect(id) {
+  currentBorrowerId = id;
+  const b = state.borrowers.find(x=>x.id===id);
+  if (!b) return;
+  document.getElementById('collect-borrower-sub').textContent = b.name;
+
+  const pd = paidDays(id);
+  const nd = getNextDay(id);
+  const remaining = remainingAmount(b);
+  const color = b.color || getColor(b.name);
+  const init = b.initials || getInitials(b.name);
+  const todayEntry = state.collections.filter(c=>c.borrowerId===id).sort((a,z)=>z.day-a.day);
+
+  const body = document.getElementById('collect-body');
+  body.innerHTML = `
+    <div class="borrower-hero">
+      <div class="hero-avatar ${color}">${init}</div>
+      <div>
+        <div class="hero-name">${b.name}</div>
+        <div class="hero-info">📍 ${b.shop||'—'}</div>
+        <div class="hero-info">📞 ${b.phone}</div>
+      </div>
+    </div>
+
+    <div class="loan-overview">
+      <div class="lo-card">
+        <div class="lo-val gold">${formatCurrency(b.loan)}</div>
+        <div class="lo-label">Loan amount</div>
+      </div>
+      <div class="lo-card">
+        <div class="lo-val ${remaining>0?'red':'green'}">${formatCurrency(remaining)}</div>
+        <div class="lo-label">Outstanding</div>
+      </div>
+      <div class="lo-card">
+        <div class="lo-val green">${formatCurrency(pd * b.dailyAmt)}</div>
+        <div class="lo-label">Total collected</div>
+      </div>
+      <div class="lo-card">
+        <div class="lo-val">${pd} / ${b.totalDays}</div>
+        <div class="lo-label">Days completed</div>
+      </div>
+    </div>
+
+    <div class="day-selector">
+      <label>Collection Day</label>
+      <input class="day-input" id="day-num" type="number" value="${nd}" min="1" max="${b.totalDays}" oninput="updateAmt()">
+    </div>
+
+    <div class="amount-row">
+      <div>
+        <div class="amt-label">Amount due</div>
+        <div class="amt-val"><span class="amt-rs">₹</span><span id="amt-display">${b.dailyAmt}</span></div>
+      </div>
+      <div style="text-align:right; color:rgba(255,255,255,.5); font-size:13px;">Daily: ₹${b.dailyAmt}<br>Tap to edit</div>
+    </div>
+
+    <textarea class="note-input" id="col-note" rows="2" placeholder="Note (optional): e.g. shop was closed, partial payment..."></textarea>
+
+    <button class="save-btn" onclick="saveCollection()">
+      <span>💾</span> Save & Send Receipt
+    </button>
+
+    <div class="history-section">
+      <div class="section-title">Payment history (${pd} entries)</div>
+      ${todayEntry.slice(0,10).map(c=>`
+      <div class="history-item">
+        <div class="hist-day">D${c.day}</div>
+        <div class="hist-info">
+          <div class="hist-date">${formatDate(c.date)}</div>
+          ${c.note?`<div class="hist-note">${c.note}</div>`:''}
+        </div>
+        <div class="hist-amt">₹${c.amount}</div>
+      </div>`).join('')}
+      ${pd===0?'<div style="color:var(--muted);font-size:13px;padding:16px 0">No collections yet</div>':''}
+    </div>
+  `;
+
+  showScreen('screen-collect');
+}
+
+function updateAmt() {
+  const b = state.borrowers.find(x=>x.id===currentBorrowerId);
+  if (!b) return;
+  document.getElementById('amt-display').textContent = b.dailyAmt;
+}
+
+function saveCollection() {
+  const b = state.borrowers.find(x=>x.id===currentBorrowerId);
+  if (!b) return;
+  const day = parseInt(document.getElementById('day-num').value) || getNextDay(currentBorrowerId);
+  const note = document.getElementById('col-note').value.trim();
+  const amount = b.dailyAmt;
+
+  // check duplicate
+  const existing = state.collections.find(c => c.borrowerId === currentBorrowerId && c.day === day);
+  if (existing) {
+    if (!confirm(`Day ${day} is already recorded. Add again?`)) return;
+  }
+
+  const entry = { id:'c'+Date.now(), borrowerId:currentBorrowerId, day, amount, date:today(), note };
+  state.collections.push(entry);
+  saveState();
+
+  // prepare WA message
+  const paid = paidDays(currentBorrowerId);
+  const remaining = remainingAmount(b);
+  const msg = buildMessage(b, day, amount, paid, remaining);
+  pendingWA = { phone: b.phone, msg };
+
+  // show success
+  document.getElementById('success-sub').textContent = `${formatCurrency(amount)} collected from ${b.name} · Day ${day}/${b.totalDays}`;
+  document.getElementById('success-overlay').classList.add('show');
+}
+
+function buildMessage(b, day, amount, totalPaid, remaining) {
+  const agentName = b.agent || state.agentName || 'MB';
+  const dateStr = new Date().toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'});
+  const timeStr = new Date().toLocaleTimeString('en-IN', {hour:'2-digit',minute:'2-digit'});
+  return [
+    '✅ *Payment Receipt*',
+    '━━━━━━━━━━━━━━━━━━',
+    `👤 *Name:* ${b.name}`,
+    `📅 *Day:* ${day} of ${b.totalDays}`,
+    `💵 *Collected:* ₹${amount}`,
+    `💰 *Total Paid:* ₹${totalPaid * b.dailyAmt}`,
+    `📉 *Remaining:* ₹${remaining}`,
+    `🗓 *Date:* ${dateStr}, ${timeStr}`,
+    '━━━━━━━━━━━━━━━━━━',
+    `— ${agentName} (Collection Agent)`,
+    '_Please save this message as your receipt._'
+  ].join('\n');
+}
+
+function sendWhatsApp() {
+  if (!pendingWA) return;
+  const url = `https://wa.me/${pendingWA.phone}?text=${encodeURIComponent(pendingWA.msg)}`;
+  window.open(url, '_blank');
+  closeSuccess();
+}
+
+function closeSuccess() {
+  document.getElementById('success-overlay').classList.remove('show');
+  pendingWA = null;
+  showScreen('screen-home');
+  renderHome();
+}
+
+// ═══════════════════════════════════════════════
+// ADD BORROWER
+// ═══════════════════════════════════════════════
+function addBorrower() {
+  const name  = document.getElementById('f-name').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const loan  = parseInt(document.getElementById('f-loan').value);
+  const days  = parseInt(document.getElementById('f-days').value);
+  const daily = parseInt(document.getElementById('f-daily').value);
+  const start = document.getElementById('f-start').value;
+  const shop  = document.getElementById('f-shop').value.trim();
+  const agent = document.getElementById('f-agent').value.trim() || 'MB';
+
+  if (!name || !phone || !loan || !days || !daily || !start) {
+    alert('Please fill all required fields.'); return;
+  }
+  if (phone.length < 10) { alert('Enter valid phone number with country code (e.g. 919876543210)'); return; }
+
+  const b = {
+    id: 'b' + Date.now(),
+    name, phone, loan, totalDays: days, dailyAmt: daily,
+    startDate: start, shop, agent,
+    color: getColor(name),
+    initials: getInitials(name)
+  };
+  state.borrowers.push(b);
+  state.agentName = agent;
+  saveState();
+
+  // clear
+  ['f-name','f-phone','f-loan','f-days','f-daily','f-shop'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-start').value = today();
+
+  showScreen('screen-home');
+  renderHome();
+}
+
+// ═══════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-home') renderHome();
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+loadState();
+document.getElementById('f-start').value = today();
+renderHome();
+</script>
+</body>
+</html>
